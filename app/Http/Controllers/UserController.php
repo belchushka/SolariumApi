@@ -14,11 +14,10 @@ use Illuminate\Support\Str;
 
 class UserController extends Controller
 {
-    public function index(Request $request):UserResource
+    public function index(Request $request)
     {
        $token = $request->bearerToken();
-       http_response_code(200);
-       return new UserResource(User::getUser($token));
+       return response()->json( new UserResource(User::getUser($token)),200);
     }
 
     public function login(Request $request)
@@ -33,11 +32,12 @@ class UserController extends Controller
               return response()->json([
                   "data"=>[
                       "token"=>$token->api_token,
+                      "error"=>null
                   ]
               ]);
           }
         }
-        return response()->json(new ErrorResource(["error"=>"Неверное имя пользоваетля или пароль"]),400);
+        return response()->json(["error"=>"Неверное имя пользоваетля или пароль", "token"=>null],418);
     }
 
     public function user_logout(Request $request)
@@ -61,7 +61,7 @@ class UserController extends Controller
 
     }
 
-    public function store(RegistrationRequest $request):UserResource
+    public function store(RegistrationRequest $request)
     {
       $user =  User::create([
           "name"=>$request->username,
@@ -69,8 +69,8 @@ class UserController extends Controller
           "password"=>Hash::make($request->password),
       ]);
 
-      http_response_code(200);
-      return new UserResource($user);
+
+      return response()->json( new UserResource($user),200);
     }
 
     public function show()
