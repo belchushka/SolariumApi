@@ -31,7 +31,8 @@ class RegistrationRequest extends FormRequest
         return [
             "username"=>"required|min:5|max:255",
             "email"=>"required|email|unique:users,email",
-            "password"=>"required"
+            "password"=>"required",
+            "role"=>"required|max:2|min:1"
         ];
     }
 

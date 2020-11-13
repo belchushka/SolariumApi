@@ -11,11 +11,13 @@ class User extends Authenticatable
 {
     use HasFactory, Notifiable;
 
-    protected $fillable = [
-        'name',
-        'email',
-        'password',
-        'api_token'
+    protected $guarded = [];
+
+    public static $role = "";
+
+    public static $roles = [
+        "1"=>"Student",
+        "2"=>"Teacher"
     ];
 
     /**
@@ -50,4 +52,16 @@ class User extends Authenticatable
     {
        return ApiToken::where("token",$token)->exists();
     }
+
+    public static function getUserRole($mask){
+        collect(self::$roles)->keys()->each(function ($key) use ($mask){
+            if(($mask & sprintf("%08d",decbin($key))) == (sprintf("%08d",decbin($key)))){
+               self::$role = self::$roles[$key];
+            }
+        });
+
+        return self::$role;
+    }
+
+
 }

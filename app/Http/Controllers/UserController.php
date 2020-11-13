@@ -9,7 +9,6 @@ use App\Models\ApiToken;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\MessageBag;
 use Illuminate\Support\Str;
 
 class UserController extends Controller
@@ -29,15 +28,16 @@ class UserController extends Controller
                   "api_token"=>Str::random(60),
               ]);
               $user->api_tokens()->attach($token);
+              $role = User::getUserRole($user->roles);
               return response()->json([
                   "data"=>[
-                      "token"=>$token->api_token,
-                      "error"=>null
+                      "user"=>collect($user)->union(["role"=>$role]),
+                      "token"=>$token->api_token
                   ]
               ]);
           }
         }
-        return response()->json(["error"=>"Неверное имя пользоваетля или пароль", "token"=>null],418);
+        return response()->json(new ErrorResource(["error"=>"Неверное имя пользователя или пароль"]),418);
     }
 
     public function user_logout(Request $request)
@@ -63,12 +63,14 @@ class UserController extends Controller
 
     public function store(RegistrationRequest $request)
     {
+        $role = sprintf("%08d",decbin($request->role));
+
       $user =  User::create([
           "name"=>$request->username,
           "email"=>$request->email,
+          "roles"=>$role,
           "password"=>Hash::make($request->password),
       ]);
-
 
       return response()->json( new UserResource($user),200);
     }
